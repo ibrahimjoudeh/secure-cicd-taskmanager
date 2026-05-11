@@ -1,0 +1,29 @@
+DATA FLOW — FREE-TIER AWS VERSION
+
+User request flow:
+
+1. User opens http://EC2_PUBLIC_IP:5000.
+2. EC2 Security Group allows inbound TCP 5000.
+3. Docker maps host port 5000 to the Flask container port 5000.
+4. Flask serves the HTML/CSS/JS frontend.
+5. Browser sends API requests to /api/auth/register, /api/auth/login, and /api/tasks.
+6. Flask validates input, verifies JWT tokens, and applies rate limiting.
+7. Flask connects to PostgreSQL through the private Docker network using DATABASE_URL.
+8. PostgreSQL stores users, password hashes, tasks, completion status, and timestamps.
+9. Flask returns JSON responses to the frontend.
+10. Docker sends application logs to CloudWatch Logs using the awslogs driver.
+
+CI/CD deployment flow:
+
+1. Student pushes code to GitHub main branch.
+2. GitHub Actions starts automatically.
+3. Pipeline runs linting and tests.
+4. Gitleaks checks for exposed secrets.
+5. Docker image is built.
+6. Trivy scans the image and blocks HIGH/CRITICAL findings.
+7. Image is pushed to Amazon ECR.
+8. GitHub Actions uses OIDC to assume an AWS IAM deploy role.
+9. GitHub Actions sends an AWS Systems Manager Run Command to the EC2 instance.
+10. EC2 pulls the approved ECR image and starts Docker Compose.
+11. Pipeline checks http://EC2_PUBLIC_IP:5000/health.
+12. If health check fails, the rollback script restarts the previous image.

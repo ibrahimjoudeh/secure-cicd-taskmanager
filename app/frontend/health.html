@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SecureTask deployment health status">
+  <title>Health Status | SecureTask Cloud</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-page="health" class="app-body">
+  <div class="app-layout">
+    <aside id="sidebar" class="sidebar" aria-label="Primary navigation">
+      <div class="sidebar-brand">
+        <span class="brand-mark"><i data-lucide="shield-check"></i></span>
+        <span>SecureTask</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-link" href="/dashboard.html"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+        <a class="nav-link" href="/dashboard.html#tasksSection"><i data-lucide="list-checks"></i><span>Tasks</span></a>
+        <a class="nav-link active" href="/health.html"><i data-lucide="activity"></i><span>Health Status</span></a>
+        <a class="nav-link" href="#settings"><i data-lucide="settings"></i><span>Settings</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="nav-link logout" type="button"><i data-lucide="log-out"></i><span>Logout</span></button>
+        <p>SecureTask Cloud<br><span>v1.0.0 Free AWS</span></p>
+      </div>
+    </aside>
+
+    <div class="content-shell">
+      <header class="topbar">
+        <button id="mobileMenuBtn" class="icon-btn mobile-only" aria-label="Open navigation" type="button"><i data-lucide="menu"></i></button>
+        <div class="search-shell health-search">
+          <i data-lucide="shield-check"></i>
+          <input readonly value="Deployment validation endpoint: /health" aria-label="Health endpoint description">
+        </div>
+        <div class="topbar-actions">
+          <button id="refreshHealthBtn" class="btn btn-primary" type="button"><i data-lucide="refresh-cw"></i> Refresh</button>
+          <a class="btn btn-secondary" href="/dashboard.html"><i data-lucide="arrow-left"></i> Dashboard</a>
+        </div>
+      </header>
+
+      <main class="main-content fade-in">
+        <div class="breadcrumbs" aria-label="Breadcrumb">
+          <a href="/dashboard.html">Home</a>
+          <i data-lucide="chevron-right"></i>
+          <span>Health Status</span>
+        </div>
+
+        <section class="page-heading health-heading">
+          <div>
+            <p class="eyebrow">Pipeline validation</p>
+            <h1>Health Status</h1>
+            <p>Auto-refreshes every 30 seconds to verify API, database, and authentication readiness.</p>
+          </div>
+          <div id="overallStatus" class="overall-status checking">
+            <span class="pulse-dot"></span>
+            <strong>Checking</strong>
+          </div>
+        </section>
+
+        <section class="health-grid">
+          <article class="health-card hero-health-card">
+            <div class="health-card-top">
+              <span class="brand-mark"><i data-lucide="heart-pulse"></i></span>
+              <span id="healthStateBadge" class="status-pill checking">Checking</span>
+            </div>
+            <h2 id="healthHeadline">Checking service health...</h2>
+            <p id="healthSummary">Waiting for the latest /health response.</p>
+            <dl class="health-meta">
+              <div><dt>Last checked</dt><dd id="lastChecked">--</dd></div>
+              <div><dt>Response time</dt><dd id="responseTime">-- ms</dd></div>
+            </dl>
+          </article>
+
+          <article class="health-card">
+            <h2>Service components</h2>
+            <div class="component-grid">
+              <div class="component-status" id="apiComponent"><i data-lucide="server"></i><span>API</span><strong>Checking</strong></div>
+              <div class="component-status" id="dbComponent"><i data-lucide="database"></i><span>Database</span><strong>Checking</strong></div>
+              <div class="component-status" id="authComponent"><i data-lucide="key-round"></i><span>Authentication</span><strong>Checking</strong></div>
+            </div>
+          </article>
+
+          <article class="health-card chart-card">
+            <div class="card-title-row">
+              <h2>Response time trend</h2>
+              <span>Last checks</span>
+            </div>
+            <div id="responseChart" class="response-chart" aria-label="Response time bar chart"></div>
+          </article>
+
+          <article class="health-card deployment-card">
+            <h2>Deployment info</h2>
+            <dl class="deployment-list">
+              <div><dt>Version</dt><dd id="deployVersion">1.0.0-free-aws</dd></div>
+              <div><dt>Commit hash</dt><dd id="deployCommit">local-dev</dd></div>
+              <div><dt>Deployed at</dt><dd id="deployedAt">local</dd></div>
+              <div><dt>Endpoint</dt><dd><code>/health</code></dd></div>
+            </dl>
+          </article>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <span>© 2025 SecureTask Cloud</span>
+        <span>Auto-refresh every 30 seconds</span>
+      </footer>
+    </div>
+  </div>
+
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script src="/js/app.js"></script>
+</body>
+</html>

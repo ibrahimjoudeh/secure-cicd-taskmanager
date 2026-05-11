@@ -1,0 +1,53 @@
+FREE-TIER AWS ARCHITECTURE
+
+Developer / Student
+        |
+        | git push
+        v
++-----------------------------+
+| GitHub Repository           |
+| app/, terraform/, docs/     |
++-------------+---------------+
+              |
+              | GitHub Actions CI/CD
+              v
++--------------------------------------------------------------+
+| CI/CD Pipeline                                               |
+| 1. Ruff lint                                                 |
+| 2. Pytest                                                    |
+| 3. Gitleaks secret scan                                      |
+| 4. Docker build                                              |
+| 5. Trivy HIGH/CRITICAL vulnerability scan                    |
+| 6. Push image to ECR                                         |
+| 7. Deploy to EC2 using AWS Systems Manager Run Command       |
++--------------------+-----------------------------------------+
+                     |
+                     v
++-----------------------------+        +------------------------------+
+| Amazon ECR                 |        | AWS IAM                       |
+| private image repository   |<------>| GitHub OIDC deploy role       |
+| image tags: sha, latest    |        | EC2 instance profile          |
++-------------+---------------+        +------------------------------+
+              |
+              | docker pull
+              v
++--------------------------------------------------------------+
+| Amazon EC2 Free-Tier Micro Instance                          |
+| Docker Compose                                                |
+|                                                              |
+| +-------------------+      +-------------------------------+ |
+| | Flask App         |----->| PostgreSQL Container           | |
+| | port 5000         |      | local Docker volume pgdata     | |
+| | /health endpoint  |      | users and tasks                | |
+| +-------------------+      +-------------------------------+ |
++------------------------+-------------------------------------+
+                         |
+                         v
++-----------------------------+
+| CloudWatch Logs             |
+| app logs, short retention   |
++-----------------------------+
+
+Network:
+Internet -> EC2 Security Group -> TCP 5000 -> Flask container
+No NAT Gateway, no ALB, no RDS, no ECS Fargate, no WAF, no Secrets Manager.

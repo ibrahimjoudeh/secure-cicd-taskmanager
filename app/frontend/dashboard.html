@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="SecureTask enterprise dashboard">
+  <title>Dashboard | SecureTask Cloud</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-page="dashboard" class="app-body">
+  <div class="app-layout">
+    <aside id="sidebar" class="sidebar" aria-label="Primary navigation">
+      <div class="sidebar-brand">
+        <span class="brand-mark"><i data-lucide="shield-check"></i></span>
+        <span>SecureTask</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-link active" href="/dashboard.html"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+        <a class="nav-link" href="#tasksSection"><i data-lucide="list-checks"></i><span>Tasks</span></a>
+        <a class="nav-link" href="/health.html"><i data-lucide="activity"></i><span>Health Status</span></a>
+        <a class="nav-link" href="#settings"><i data-lucide="settings"></i><span>Settings</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="nav-link logout" type="button"><i data-lucide="log-out"></i><span>Logout</span></button>
+        <p>SecureTask Cloud<br><span>v1.0.0 Free AWS</span></p>
+      </div>
+    </aside>
+
+    <div class="content-shell">
+      <header class="topbar">
+        <button id="mobileMenuBtn" class="icon-btn mobile-only" aria-label="Open navigation" type="button"><i data-lucide="menu"></i></button>
+        <div class="search-shell">
+          <i data-lucide="search"></i>
+          <input id="searchInput" type="search" placeholder="Search tasks, priority, status..." aria-label="Search tasks">
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn notification-btn" type="button" aria-label="Notifications"><i data-lucide="bell"></i><span class="badge-dot">3</span></button>
+          <button id="newTaskTopBtn" class="btn btn-primary" type="button"><i data-lucide="plus"></i> New Task</button>
+          <div class="avatar-menu" aria-label="Signed in user">
+            <button id="avatarBtn" class="avatar" type="button" aria-haspopup="true" aria-expanded="false">ST</button>
+            <div id="avatarDropdown" class="avatar-dropdown hidden">
+              <strong id="currentUserEmail">student@example.com</strong>
+              <button id="logoutMenuBtn" type="button">Logout</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content fade-in">
+        <div class="breadcrumbs" aria-label="Breadcrumb">
+          <a href="/dashboard.html">Home</a>
+          <i data-lucide="chevron-right"></i>
+          <span>Task Dashboard</span>
+        </div>
+
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow">Operations workspace</p>
+            <h1>Task Dashboard</h1>
+            <p>Plan work, validate deployment health, and demonstrate enterprise DevSecOps workflows.</p>
+          </div>
+          <a class="btn btn-secondary" href="/health.html"><i data-lucide="activity"></i> Health Status</a>
+        </section>
+
+        <section class="stats-grid" aria-label="Task statistics">
+          <article class="stat-card">
+            <div><span>Total Tasks</span><strong id="statTotal">0</strong></div>
+            <i data-lucide="clipboard-list"></i>
+            <p class="trend up">+12% workflow visibility</p>
+          </article>
+          <article class="stat-card">
+            <div><span>Completed</span><strong id="statCompleted">0</strong></div>
+            <i data-lucide="circle-check-big"></i>
+            <p class="trend up">On-track deliverables</p>
+          </article>
+          <article class="stat-card">
+            <div><span>In Progress</span><strong id="statProgress">0</strong></div>
+            <i data-lucide="loader-circle"></i>
+            <p class="trend neutral">Active execution</p>
+          </article>
+          <article class="stat-card">
+            <div><span>Overdue</span><strong id="statOverdue">0</strong></div>
+            <i data-lucide="triangle-alert"></i>
+            <p class="trend down">Requires attention</p>
+          </article>
+        </section>
+
+        <section id="tasksSection" class="workspace-card">
+          <div class="workspace-header">
+            <div>
+              <h2>Tasks</h2>
+              <p>Filter, sort, create, edit, delete, and move tasks between workflow states.</p>
+            </div>
+            <div class="view-toggle" role="group" aria-label="View mode">
+              <button id="kanbanViewBtn" class="toggle-btn active" type="button"><i data-lucide="columns-3"></i> Kanban</button>
+              <button id="tableViewBtn" class="toggle-btn" type="button"><i data-lucide="table-2"></i> Table</button>
+            </div>
+          </div>
+
+          <div class="filter-bar" aria-label="Task filters">
+            <label>Status
+              <select id="statusFilter">
+                <option value="all">All statuses</option>
+                <option value="todo">To Do</option>
+                <option value="in-progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </label>
+            <label>Priority
+              <select id="priorityFilter">
+                <option value="all">All priorities</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+            <label>Due before
+              <input id="dueFilter" type="date">
+            </label>
+            <button id="clearFiltersBtn" class="btn btn-ghost" type="button"><i data-lucide="x"></i> Clear</button>
+          </div>
+
+          <div id="loadingSkeleton" class="skeleton-grid hidden" aria-label="Loading tasks">
+            <div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>
+          </div>
+
+          <div id="emptyState" class="empty-state hidden">
+            <div class="empty-illustration"><i data-lucide="inbox"></i></div>
+            <h3>No tasks yet</h3>
+            <p>Create your first task to demonstrate authenticated CRUD functionality.</p>
+            <button id="emptyCreateBtn" class="btn btn-primary" type="button"><i data-lucide="plus"></i> Create your first task</button>
+          </div>
+
+          <div id="kanbanBoard" class="kanban-board" aria-label="Kanban task board">
+            <section class="kanban-column" data-status="todo" aria-label="To Do tasks">
+              <header><span>To Do</span><strong id="countTodo">0</strong></header>
+              <div class="kanban-list" id="todoList"></div>
+            </section>
+            <section class="kanban-column" data-status="in-progress" aria-label="In Progress tasks">
+              <header><span>In Progress</span><strong id="countProgress">0</strong></header>
+              <div class="kanban-list" id="progressList"></div>
+            </section>
+            <section class="kanban-column" data-status="done" aria-label="Done tasks">
+              <header><span>Done</span><strong id="countDone">0</strong></header>
+              <div class="kanban-list" id="doneList"></div>
+            </section>
+          </div>
+
+          <div id="tableView" class="table-wrap hidden">
+            <table class="task-table">
+              <thead>
+                <tr>
+                  <th><button class="sort-btn" data-sort="title">Task <i data-lucide="arrow-up-down"></i></button></th>
+                  <th><button class="sort-btn" data-sort="status">Status <i data-lucide="arrow-up-down"></i></button></th>
+                  <th><button class="sort-btn" data-sort="priority">Priority <i data-lucide="arrow-up-down"></i></button></th>
+                  <th><button class="sort-btn" data-sort="due_date">Due Date <i data-lucide="arrow-up-down"></i></button></th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="taskTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <span>© 2025 SecureTask Cloud</span>
+        <span>Cloud Computing & Security project • v1.0.0</span>
+      </footer>
+    </div>
+  </div>
+
+  <div id="drawerBackdrop" class="drawer-backdrop hidden" tabindex="-1"></div>
+  <aside id="taskDrawer" class="task-drawer" aria-labelledby="drawerTitle" aria-hidden="true">
+    <form id="taskForm" class="drawer-form" novalidate>
+      <div class="drawer-header">
+        <div>
+          <p class="eyebrow">Task details</p>
+          <h2 id="drawerTitle">Create task</h2>
+        </div>
+        <button id="closeDrawerBtn" class="icon-btn" type="button" aria-label="Close task drawer"><i data-lucide="x"></i></button>
+      </div>
+
+      <input id="taskId" type="hidden">
+      <div class="field-group">
+        <div class="label-row"><label for="taskTitle">Title</label><span id="titleCounter">0/140</span></div>
+        <input id="taskTitle" name="title" type="text" maxlength="140" required placeholder="e.g., Prepare AWS deployment demo">
+        <p id="titleError" class="field-error" aria-live="polite"></p>
+      </div>
+
+      <div class="field-group">
+        <label for="taskDescription">Description</label>
+        <textarea id="taskDescription" name="description" rows="4" maxlength="1000" placeholder="Add implementation details, risks, or demo notes"></textarea>
+      </div>
+
+      <div class="field-group">
+        <label for="taskStatus">Status</label>
+        <select id="taskStatus" name="status">
+          <option value="todo">To Do</option>
+          <option value="in-progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">Priority</span>
+        <div class="priority-grid" role="radiogroup" aria-label="Task priority">
+          <label class="priority-option low"><input type="radio" name="priority" value="low"> Low</label>
+          <label class="priority-option medium"><input type="radio" name="priority" value="medium" checked> Medium</label>
+          <label class="priority-option high"><input type="radio" name="priority" value="high"> High</label>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="taskDueDate">Due date</label>
+        <input id="taskDueDate" name="due_date" type="date">
+      </div>
+
+      <div class="drawer-actions">
+        <button id="deleteTaskBtn" class="btn btn-danger-ghost hidden" type="button"><i data-lucide="trash-2"></i> Delete</button>
+        <div class="drawer-action-right">
+          <button id="cancelTaskBtn" class="btn btn-secondary" type="button">Cancel</button>
+          <button class="btn btn-primary" type="submit"><i data-lucide="save"></i> Save Task</button>
+        </div>
+      </div>
+    </form>
+  </aside>
+
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script src="/js/app.js"></script>
+</body>
+</html>

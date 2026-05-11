@@ -1,0 +1,8 @@
+backend/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/.coverage
+backend/tests/
+.env
+.env.*
+.git/

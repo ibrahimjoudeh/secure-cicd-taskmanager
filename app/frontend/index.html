@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Secure CI/CD Task Manager login portal">
+  <title>Sign in | SecureTask Cloud</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body data-page="login" class="auth-body">
+  <main class="auth-shell" aria-label="Authentication page">
+    <section class="auth-brand-panel" aria-label="Product highlights">
+      <div class="brand-mark brand-mark-lg" aria-hidden="true">
+        <i data-lucide="shield-check"></i>
+      </div>
+      <p class="eyebrow">Cloud Computing & Security</p>
+      <h1>SecureTask Cloud</h1>
+      <p class="auth-lede">Enterprise-style task management backed by Docker, GitHub Actions, AWS EC2, ECR, IAM, SSM, and CloudWatch.</p>
+      <div class="auth-proof-grid">
+        <article>
+          <i data-lucide="scan-line"></i>
+          <strong>DevSecOps checks</strong>
+          <span>Gitleaks + Trivy before deployment</span>
+        </article>
+        <article>
+          <i data-lucide="activity"></i>
+          <strong>Health validation</strong>
+          <span>Pipeline-ready /health endpoint</span>
+        </article>
+        <article>
+          <i data-lucide="server-cog"></i>
+          <strong>Free-tier AWS</strong>
+          <span>EC2 + Docker Compose deployment</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="auth-card" aria-labelledby="authTitle">
+      <div class="auth-card-header">
+        <div class="brand-row">
+          <span class="brand-mark" aria-hidden="true"><i data-lucide="layers-3"></i></span>
+          <span>SecureTask</span>
+        </div>
+        <div>
+          <p class="eyebrow">Welcome back</p>
+          <h2 id="authTitle">Sign in to your account</h2>
+          <p>Use the demo credentials below or create a new account.</p>
+        </div>
+      </div>
+
+      <div class="auth-tabs" role="tablist" aria-label="Authentication mode">
+        <button id="loginTab" class="tab-btn active" type="button" aria-selected="true">Sign In</button>
+        <button id="registerTab" class="tab-btn" type="button" aria-selected="false">Create Account</button>
+      </div>
+
+      <form id="authForm" class="form-stack" novalidate>
+        <div class="field-group">
+          <label for="email">Email address</label>
+          <div class="input-shell">
+            <i data-lucide="mail"></i>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="student@example.com" value="student@example.com" required>
+          </div>
+          <p id="emailError" class="field-error" aria-live="polite"></p>
+        </div>
+
+        <div class="field-group">
+          <label for="password">Password</label>
+          <div class="input-shell">
+            <i data-lucide="lock-keyhole"></i>
+            <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Minimum 8 characters" value="StrongPass123" required minlength="8">
+            <button id="togglePassword" class="icon-btn" type="button" aria-label="Show password"><i data-lucide="eye"></i></button>
+          </div>
+          <p id="passwordError" class="field-error" aria-live="polite"></p>
+        </div>
+
+        <div class="form-row between">
+          <label class="check-row">
+            <input id="rememberMe" type="checkbox" checked>
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="text-link">Forgot password?</a>
+        </div>
+
+        <button id="authSubmit" class="btn btn-primary btn-full" type="submit">
+          <span class="btn-label">Sign In</span>
+          <span class="btn-loader" aria-hidden="true"></span>
+        </button>
+        <p id="authMessage" class="form-message" aria-live="polite"></p>
+      </form>
+
+      <aside class="demo-hint" aria-label="Demo credentials">
+        <div>
+          <strong>Demo credentials</strong>
+          <p>Email: student@example.com<br>Password: StrongPass123</p>
+        </div>
+        <i data-lucide="info"></i>
+      </aside>
+
+      <div class="auth-footer-links">
+        <a href="/health.html">View health status</a>
+        <span>Version 1.0.0</span>
+      </div>
+    </section>
+  </main>
+
+  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script src="/js/app.js"></script>
+</body>
+</html>

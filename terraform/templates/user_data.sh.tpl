@@ -11,20 +11,34 @@ COMPOSE_VERSION="v2.29.7"
 
 exec > >(tee /var/log/taskmanager-user-data.log | logger -t taskmanager-user-data -s 2>/dev/console) 2>&1
 
+# Keep the base operating system current.
 dnf update -y
-dnf install -y docker curl unzip openssl awscli amazon-cloudwatch-agent
-systemctl enable --now docker
-systemctl enable --now amazon-ssm-agent || true
 
+# Explicitly install and start AWS Systems Manager Agent first.
+# This ensures the instance can register with SSM and receive deployment commands.
+yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+systemctl enable amazon-ssm-agent
+systemctl restart amazon-ssm-agent
+systemctl status amazon-ssm-agent --no-pager || true
+
+# Install runtime tools needed for Docker deployment and logging.
+dnf install -y docker curl unzip openssl awscli amazon-cloudwatch-agent
+
+# Start Docker.
+systemctl enable --now docker
+
+# Install Docker Compose v2 plugin.
 mkdir -p /usr/local/lib/docker/cli-plugins
 curl -fsSL "https://github.com/docker/compose/releases/download/$COMPOSE_VERSION/docker-compose-linux-x86_64" \
   -o /usr/local/lib/docker/cli-plugins/docker-compose
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
 
+# Create deployment directory.
 mkdir -p "$APP_DIR"
 cd "$APP_DIR"
 
+# Generate runtime secrets locally on the EC2 host.
 DB_PASSWORD=$(openssl rand -hex 16)
 SECRET_KEY=$(openssl rand -hex 24)
 JWT_SECRET=$(openssl rand -hex 24)
@@ -41,8 +55,10 @@ CORS_ORIGINS=*
 AWS_REGION=$AWS_REGION
 ECR_IMAGE=$ECR_URL:latest
 ENVEOF
+
 chmod 600 .env
 
+# AWS Compose file used on the EC2 host.
 cat > docker-compose.aws.yml <<'COMPOSEEOF'
 services:
   db:
@@ -89,6 +105,7 @@ volumes:
   pgdata:
 COMPOSEEOF
 
+# Deployment script called from GitHub Actions through AWS Systems Manager.
 cat > deploy.sh <<'DEPLOYEOF'
 #!/bin/bash
 set -euo pipefail
@@ -96,12 +113,14 @@ set -euo pipefail
 IMAGE="$${1:?Usage: deploy.sh <ecr-image-uri>}"
 APP_DIR="/opt/taskmanager"
 REGION="${aws_region}"
+
 cd "$APP_DIR"
 
 CURRENT_IMAGE=""
 if grep -q '^ECR_IMAGE=' .env; then
   CURRENT_IMAGE=$(grep '^ECR_IMAGE=' .env | cut -d= -f2- || true)
 fi
+
 if [ -n "$CURRENT_IMAGE" ]; then
   echo "$CURRENT_IMAGE" > .previous_image
 fi
@@ -124,6 +143,7 @@ for attempt in $(seq 1 18); do
     docker image prune -af --filter "until=24h" || true
     exit 0
   fi
+
   echo "Waiting for healthy app... attempt $attempt"
   sleep 5
 done
@@ -131,17 +151,21 @@ done
 echo "Deployment failed health check"
 exit 1
 DEPLOYEOF
+
 chmod +x deploy.sh
 
+# Rollback script called only when deployment health validation fails.
 cat > rollback.sh <<'ROLLBACKEOF'
 #!/bin/bash
 set -euo pipefail
 
 APP_DIR="/opt/taskmanager"
 REGION="${aws_region}"
+
 cd "$APP_DIR"
 
 ROLLBACK_IMAGE=""
+
 if [ -s .previous_image ]; then
   ROLLBACK_IMAGE=$(cat .previous_image)
 elif [ -s .last_good_image ]; then
@@ -154,8 +178,10 @@ if [ -z "$ROLLBACK_IMAGE" ]; then
 fi
 
 sed -i "s|^ECR_IMAGE=.*|ECR_IMAGE=$ROLLBACK_IMAGE|" .env
+
 REGISTRY=$(echo "$ROLLBACK_IMAGE" | cut -d/ -f1)
 aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$REGISTRY"
+
 docker compose -f docker-compose.aws.yml pull app
 docker compose -f docker-compose.aws.yml up -d
 
@@ -164,15 +190,18 @@ for attempt in $(seq 1 12); do
     echo "Rollback successful to $ROLLBACK_IMAGE"
     exit 0
   fi
+
   sleep 5
 done
 
 echo "Rollback failed health check"
 exit 1
 ROLLBACKEOF
+
 chmod +x rollback.sh
 
-# Start only the database now. The app starts after the first GitHub Actions deployment.
+# Start only PostgreSQL during bootstrap.
+# The app container starts after GitHub Actions pushes the first image to ECR and deploys it.
 docker compose -f docker-compose.aws.yml up -d db
 
 echo "EC2 bootstrap complete. Waiting for first CI/CD deployment image."

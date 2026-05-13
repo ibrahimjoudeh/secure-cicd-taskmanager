@@ -10,20 +10,26 @@ def client():
     app = create_app(
         {
             "TESTING": True,
-            "JWT_SECRET": "test-secret",
+            "JWT_SECRET": "test-secret",  # gitleaks:allow
             "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
             "SQLALCHEMY_ENGINE_OPTIONS": {},
             "RATE_LIMIT_DEFAULT": "1000 per minute",
         }
     )
+
     with app.app_context():
         db.create_all()
+
     return app.test_client()
 
 
 def auth_headers(client):
-    resp = client.post("/api/auth/register", json={"email": "student@example.com", "password": "StrongPass123"})
+    resp = client.post(
+        "/api/auth/register",
+        json={"email": "student@example.com", "password": "StrongPass123"},  # gitleaks:allow
+    )
     assert resp.status_code == 201
+
     token = resp.get_json()["token"]
     return {"Authorization": f"Bearer {token}"}
 
@@ -31,6 +37,7 @@ def auth_headers(client):
 def test_health_endpoint(client):
     resp = client.get("/health")
     body = resp.get_json()
+
     assert resp.status_code == 200
     assert body["status"] == "healthy"
     assert body["database"] == "connected"
@@ -38,10 +45,18 @@ def test_health_endpoint(client):
 
 
 def test_register_and_login(client):
-    client.post("/api/auth/register", json={"email": "student@example.com", "password": "StrongPass123"})
-    resp = client.post("/api/auth/login", json={"email": "student@example.com", "password": "StrongPass123"})
-    assert resp.status_code == 200
-    assert "token" in resp.get_json()
+    register_response = client.post(
+        "/api/auth/register",
+        json={"email": "student@example.com", "password": "StrongPass123"},  # gitleaks:allow
+    )
+    assert register_response.status_code == 201
+
+    login_response = client.post(
+        "/api/auth/login",
+        json={"email": "student@example.com", "password": "StrongPass123"},  # gitleaks:allow
+    )
+    assert login_response.status_code == 200
+    assert "token" in login_response.get_json()
 
 
 def test_task_crud_with_enterprise_fields(client):
@@ -59,8 +74,10 @@ def test_task_crud_with_enterprise_fields(client):
         headers=headers,
     )
     assert created.status_code == 201
+
     task = created.get_json()["task"]
     task_id = task["id"]
+
     assert task["status"] == "in-progress"
     assert task["priority"] == "high"
     assert task["due_date"] == "2025-12-20"
@@ -69,7 +86,11 @@ def test_task_crud_with_enterprise_fields(client):
     assert listed.status_code == 200
     assert len(listed.get_json()["tasks"]) == 1
 
-    updated = client.put(f"/api/tasks/{task_id}", json={"status": "done", "completed": True}, headers=headers)
+    updated = client.put(
+        f"/api/tasks/{task_id}",
+        json={"status": "done", "completed": True},
+        headers=headers,
+    )
     assert updated.status_code == 200
     assert updated.get_json()["task"]["completed"] is True
     assert updated.get_json()["task"]["status"] == "done"
@@ -78,6 +99,7 @@ def test_task_crud_with_enterprise_fields(client):
     assert deleted.status_code == 200
 
     empty = client.get("/api/tasks", headers=headers)
+    assert empty.status_code == 200
     assert empty.get_json()["tasks"] == []
 
 

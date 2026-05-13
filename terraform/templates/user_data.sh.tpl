@@ -22,7 +22,7 @@ systemctl restart amazon-ssm-agent
 systemctl status amazon-ssm-agent --no-pager || true
 
 # Install runtime tools needed for Docker deployment and logging.
-dnf install -y docker curl unzip openssl awscli amazon-cloudwatch-agent
+dnf install -y docker unzip openssl awscli amazon-cloudwatch-agent
 
 # Start Docker.
 systemctl enable --now docker
